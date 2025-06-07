@@ -1,0 +1,55 @@
+#!/sbin/sh
+TMPDIR=/dev/tmp
+MOUNTPATH=/dev/magisk_img
+
+# Default permissions
+umask 022
+
+# Initial cleanup
+rm -rf $TMPDIR 2>/dev/null
+mkdir -p $TMPDIR
+
+# echo before loading util_functions
+ui_print() { echo "$1"; }
+
+require_new_magisk() {
+  ui_print "*******************************"
+  ui_print " Please install Magisk v20.0+! "
+  ui_print "*******************************"
+  exit 1
+}
+
+OUTFD=$2
+ZIPFILE=$3
+
+mount /data 2>/dev/null
+
+# Load utility functions
+[ -f /data/adb/magisk/util_functions.sh ] && . /data/adb/magisk/util_functions.sh || require_new_magisk
+
+# Prepare
+setup_flashable
+mount_partitions
+api_level_arch_detect
+
+# Extract common files
+unzip -o "$ZIPFILE" 'common/*' -d $TMPDIR >&2
+
+# Mount stuffs
+$BOOTMODE && MODDIRNAME=modules_update || MODDIRNAME=modules
+MODULEROOT=$NVBASE/$MODDIRNAME
+MODID=integritycore
+MODPATH=$MODULEROOT/$MODID
+
+# Create mod paths
+rm -rf $MODPATH 2>/dev/null
+mkdir -p $MODPATH
+
+# Extract files
+unzip -o "$ZIPFILE" -d $MODPATH >&2
+
+# Set permissions
+set_permissions
+
+# Complete install
+cleanup 

@@ -1,0 +1,17 @@
+id=integritycore
+name=IntegrityCore
+version=v3.0
+versionCode=3
+author=Kaushik (@veloxineology)
+description=Combined module providing Play Integrity Fix, Zygisk Next, and Zygisk Assistant functionality
+updateJson=https://raw.githubusercontent.com/veloxineology/IntegrityCore/main/update.json
+support=https://github.com/veloxineology/IntegrityCore
+credits=Play Integrity Fork v13 by osm0sis, Zygisk Next v1.2.9 by Dr-TSNG, Zygisk Assistant v2.1.4 by snake-4
+minMagisk=26402
+minKernelSU=10940
+minApatch=10700
+
+# Credits
+# Play Integrity Fix v13 by osm0sis
+# Zygisk Next v1.2.9 by Dr-TSNG
+# Zygisk Assistant v2.1.4 by snake-4 
