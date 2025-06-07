@@ -63,8 +63,17 @@ jobs:
 
       - name: Copy module zips
         run: |
-          cp "Zygisk-Next-1.2.9-521-e73dbfc-release.zip" IntegrityCore/modules/
-          cp "Zygisk-Assistant-v2.1.4-1013f8a-release.zip" IntegrityCore/modules/
+          if [ -f "Zygisk-Next-1.2.9-521-e73dbfc-release.zip" ]; then
+            cp "Zygisk-Next-1.2.9-521-e73dbfc-release.zip" IntegrityCore/modules/
+          else
+            echo "Warning: Zygisk-Next module zip not found"
+          fi
+          
+          if [ -f "Zygisk-Assistant-v2.1.4-1013f8a-release.zip" ]; then
+            cp "Zygisk-Assistant-v2.1.4-1013f8a-release.zip" IntegrityCore/modules/
+          else
+            echo "Warning: Zygisk-Assistant module zip not found"
+          fi
 
       - name: Create zip file
         run: |
