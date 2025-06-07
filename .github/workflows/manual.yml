@@ -1,0 +1,93 @@
+name: Build IntegrityCore
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseNotes:
+        description: 'Release notes (markdown supported)'
+        required: true
+        type: textarea
+        default: ""
+      isPrerelease:
+        description: 'Mark as pre-release?'
+        required: true
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
+      isDraft:
+        description: 'Save as draft?'
+        required: true
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read version from module.prop
+        id: version
+        run: |
+          VERSION=$(grep "version=" IntegrityCore/module.prop | cut -d'=' -f2)
+          VERSION_CODE=$(grep "versionCode=" IntegrityCore/module.prop | cut -d'=' -f2)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_code=${VERSION_CODE}" >> $GITHUB_OUTPUT
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+
+      - name: Create directory structure
+        run: |
+          mkdir -p IntegrityCore/modules
+          mkdir -p IntegrityCore/META-INF/com/google/android
+
+      - name: Copy module files
+        run: |
+          cp customize.sh IntegrityCore/
+          cp module.prop IntegrityCore/
+          cp README.md IntegrityCore/
+          cp META-INF/com/google/android/updater-script IntegrityCore/META-INF/com/google/android/
+          cp META-INF/com/google/android/update-binary IntegrityCore/META-INF/com/google/android/
+
+      - name: Copy module zips
+        run: |
+          cp "Zygisk-Next-1.2.9-521-e73dbfc-release.zip" IntegrityCore/modules/
+          cp "Zygisk-Assistant-v2.1.4-1013f8a-release.zip" IntegrityCore/modules/
+
+      - name: Create zip file
+        run: |
+          cd IntegrityCore
+          zip -r ../IntegrityCore.zip . -x "*.DS_Store" "*.git*" "*.sha256"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          body: ${{ github.event.inputs.releaseNotes }}
+          draft: ${{ github.event.inputs.isDraft == 'true' }}
+          prerelease: ${{ github.event.inputs.isPrerelease == 'true' }}
+          files: IntegrityCore.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IntegrityCore
+          path: IntegrityCore.zip
+          if-no-files-found: error 
